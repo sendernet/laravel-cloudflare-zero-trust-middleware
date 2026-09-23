@@ -92,43 +92,20 @@ it('rejects user JWT missing sub claim', function (): void {
         ->assertStatus(401);
 });
 
-it('rejects user JWT missing nbf claim', function (): void {
-    $payload = [
-        'aud' => ['aud'],
-        'email' => 'user@example.com',
-        'exp' => now()->addYear()->timestamp,
-        'iat' => now()->subSecond()->timestamp,
-        'iss' => 'https://'.config('cloudflare-zero-trust-middleware.cloudflare_team_name').'.cloudflareaccess.com',
-        'type' => 'user',
-        'identity_nonce' => 'nonce123',
-        'sub' => 'user-sub-123',
-        'country' => 'US',
-    ];
-
-    $algorithmManager = new AlgorithmManager([new RS256]);
-    $jwsBuilder = new JWSBuilder($algorithmManager);
-
-    $jws = $jwsBuilder->create()
-        ->withPayload(json_encode($payload))
-        ->addSignature($this->jwk_1, ['alg' => 'RS256', 'kid' => $this->jwk_1->get('kid')])
-        ->build();
-
-    $serializer = new CompactSerializer;
-    $token = $serializer->serialize($jws, 0);
-
+it('allows user JWT without nbf claim', function (): void {
     $this->withHeaders([
-        ZeroTrustMiddleware::CF_ACCESS_JWT_HEADER_NAME => $token,
+        ZeroTrustMiddleware::CF_ACCESS_JWT_HEADER_NAME => $this->generateUserJWT('aud', now()->addYear(), $this->jwk_1, ['nbf' => null]),
     ])
         ->getJson('/')
-        ->assertStatus(401);
+        ->assertStatus(200);
 });
 
-it('rejects user JWT missing country claim', function (): void {
+it('allows user JWT without country claim', function (): void {
     $this->withHeaders([
         ZeroTrustMiddleware::CF_ACCESS_JWT_HEADER_NAME => $this->generateUserJWT('aud', now()->addYear(), $this->jwk_1, ['country' => null]),
     ])
         ->getJson('/')
-        ->assertStatus(401);
+        ->assertStatus(200);
 });
 
 it('allows service token without nbf claim', function (): void {

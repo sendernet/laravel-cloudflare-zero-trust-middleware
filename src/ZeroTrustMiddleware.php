@@ -41,7 +41,8 @@ class ZeroTrustMiddleware
 
     public const CERTIFICATE_CACHE_KEY = 'cloudflare-zero-trust-middleware-certificate-cache';
 
-    final public const USER_CLAIMS = ['iss', 'sub', 'aud', 'exp', 'nbf', 'country', 'identity_nonce', 'type'];
+    // WARP-authenticated sessions (warp_as_auth) omit nbf, country and identity_nonce, so they are not mandatory.
+    final public const USER_CLAIMS = ['iss', 'sub', 'aud', 'exp'];
 
     final public const SERVICE_TOKEN_CLAIMS = ['iss', 'aud', 'exp', 'type', 'common_name'];
 
